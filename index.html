@@ -4,31 +4,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alexis Barrientos</title>
+    <title>{Fullname}</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 
 <body>
 
     <header>
         <nav>
-            <!-- Navigation links can go here. Example: Home, About, Projects, Contact -->
+            <ul>
+                <li><a href="#home"><img src="favicon.ico" alt="Home" width="24"></a></li>
+                <li><a href="#about">about</a></li>
+                <li><a href="#works">works</a></li>
+                <li><a href="#contact">contact</a></li>
+            </ul>
+            <ul>
+                <li><a href="#language">lang</a></li>
+            </ul>
         </nav>
-        <h1>Welcome to Alexis' Portfolio</h1>
     </header>
 
     <main>
-        <!-- Main content of your site. This can include:
-             - A brief introduction about yourself
-             - A showcase of your projects
-             - Testimonials or any other content you feel relevant
-        -->
+        <div id="shown-content-container">
+        </div>
     </main>
 
     <footer>
-        <p>© 2023 by Alexis Barrientos Rivas. Licensed under the MIT License.</p>
+        &copy; 2023 by {Fullname}. Licensed under the MIT License.
     </footer>
+
+    <script src="script.js"></script>
 
 </body>
 
