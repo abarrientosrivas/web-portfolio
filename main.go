@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"text/template"
+	"time"
 )
 
 type Works struct {
@@ -27,8 +28,15 @@ func main() {
 	}
 
 	h2 := func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(1 * time.Second)
 		log.Print("HTMX Hit")
-		log.Print(r.Header.Get("HX-Request"))
+		title := r.PostFormValue("Title")
+		fmt.Println(title)
+		tmpl := template.Must(template.ParseFiles("templates/index.html"))
+		tmpl.ExecuteTemplate(w, "test-list-element", Works{Title: title, Description: "manually added"})
+		// htmlStr := fmt.Sprintf("<p>%s - manually added</p>", title)
+		// tmpl, _ := template.New("t").Parse(htmlStr)
+		// tmpl.Execute(w, nil)
 	}
 
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
