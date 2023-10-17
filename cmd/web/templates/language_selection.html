@@ -1,24 +1,28 @@
-<img src="/static/portrait.jpg">
 <div class="language">
-    <div class="hoverable">es</div>
-    <div class="hoverable">en</div>
-    <div class="hoverable">jp</div>
+    <img src="/static/portrait.jpg">
+    <br/>
+    <h2 class="display-text">- CHOOSE YOUR LANGUAGE -</h2>
+    <p class="hoverable" hx-get="/lang/es" hx-target="#shown-content-container" hx-trigger="click">ESPAÑOL</p>
+    <p class="hoverable" hx-get="/lang/es" hx-target="#shown-content-container" hx-trigger="click">ENGLISH</p>
+    <p class="hoverable" hx-get="/lang/es" hx-target="#shown-content-container" hx-trigger="click">日本語</p>
 </div>
 <script>
-    const elements = document.querySelectorAll(".hoverable");
+    (() => {
+        const elements = document.querySelectorAll(".hoverable");
 
-    elements.forEach(function(element) {
-        element.addEventListener("mouseover", onMouseEnter);
-        element.addEventListener("mouseout", onMouseLeave);
-    });
-    
-    function onMouseEnter(event) {
-        const element = event.target;
-        element.textContent = `>${element.textContent}<`;
-    }
-    
-    function onMouseLeave(event) {
-        const element = event.target;
-        element.textContent = element.textContent.replace(/<|>/g, "");
-    }
+        elements.forEach(function(element) {
+            element.addEventListener("mouseover", onMouseEnter);
+            element.addEventListener("mouseout", onMouseLeave);
+        });
+        
+        function onMouseEnter(event) {
+            const element = event.target;
+            element.textContent = `>${element.textContent}<`;
+        }
+        
+        function onMouseLeave(event) {
+            const element = event.target;
+            element.textContent = element.textContent.replace(/<|>/g, "");
+        }
+    })();
 </script>

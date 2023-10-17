@@ -55,3 +55,45 @@ footer {
     bottom: 0;
     left: 15%;
 }
+
+.hoverable{
+    cursor: pointer;
+}
+
+.display-text{
+    cursor:default;
+}
+
+.language,.presentation{
+    margin-top: 5em;
+    text-align: center; 
+}
+
+#message {
+    opacity: 0;
+    transition: opacity 2s ease-in 3s;
+    animation: pulse 4s infinite 8s;
+}
+@keyframes pulse {
+	0% {
+		transform: scale(1);
+	}
+
+	70% {
+		transform: scale(0.97);
+	}
+
+	100% {
+		transform: scale(1);
+	}
+}
+
+#shown-content-container {
+    opacity: 1;
+    transition: opacity 250ms ease-in;
+}
+
+#shown-content-container.htmx-swapping {
+    opacity: 0;
+    transition: opacity 250ms ease-out;
+}

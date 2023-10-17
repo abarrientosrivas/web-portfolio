@@ -44,10 +44,16 @@ func main() {
 		tmpl.Execute(w, nil)
 	}
 
+	h4 := func(w http.ResponseWriter, r *http.Request) {
+		tmpl := template.Must(template.ParseFiles("templates/welcome_es.html"))
+		tmpl.Execute(w, nil)
+	}
+
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.HandleFunc("/", h1)
 	http.HandleFunc("/hit/", h2)
 	http.HandleFunc("/initial", h3)
+	http.HandleFunc("/lang/es", h4)
 
 	log.Fatal(http.ListenAndServe("127.0.0.1:8000", nil))
 }

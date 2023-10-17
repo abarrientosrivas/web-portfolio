@@ -21,13 +21,13 @@
                 <li><a href="#contact">contact</a></li>
             </ul>
             <ul>
-                <li><a href="#language">lang</a></li>
+                <li><a hx-get="/initial" hx-target="#shown-content-container" hx-trigger="click" hx-swap="innerHTML swap:500ms">lang</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
-        <div id="shown-content-container" hx-get="/initial" hx-trigger="load">
+        <div id="shown-content-container" hx-get="/initial" hx-trigger="load" hx-swap="innerHTML swap:500ms">
             
         </div>
     </main>
