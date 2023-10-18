@@ -50,10 +50,28 @@ func main() {
 	}
 
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	http.HandleFunc("/", h1)
+	http.HandleFunc("/", PlainIndex)
+	http.HandleFunc("/home", PlainHome)
+	http.HandleFunc("/language", PlainLanguage)
+	http.HandleFunc("/pop", h1)
 	http.HandleFunc("/hit/", h2)
 	http.HandleFunc("/initial", h3)
 	http.HandleFunc("/lang/es", h4)
 
 	log.Fatal(http.ListenAndServe("127.0.0.1:8000", nil))
+}
+
+func PlainIndex(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("templates/plain_htmls/index.html"))
+	tmpl.Execute(w, nil)
+}
+
+func PlainHome(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("templates/plain_htmls/home.html"))
+	tmpl.Execute(w, nil)
+}
+
+func PlainLanguage(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("templates/plain_htmls/language.html"))
+	tmpl.Execute(w, nil)
 }
