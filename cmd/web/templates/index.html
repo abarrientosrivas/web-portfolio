@@ -28,7 +28,7 @@
 
     <main>
         <div id="shown-content-container" hx-get="/initial" hx-trigger="load" hx-swap="innerHTML swap:500ms">
-            
+            <h1 style="text-align: center; color: blue;">hola xd</h1>
         </div>
     </main>
 
@@ -37,5 +37,15 @@
     </footer>
 
 </body>
+
+<script>
+    addEventListener('wheel', function(event) {
+        if (event.deltaY < 0) {
+            htmx.trigger("#shown-content-container", "scrollup", null);
+        } else if (event.deltaY > 0) {
+            htmx.trigger("#shown-content-container", "scrolldown", {answer:42});
+        }
+    });
+</script>
 
 </html>

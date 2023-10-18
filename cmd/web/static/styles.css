@@ -72,7 +72,8 @@ footer {
 #message {
     opacity: 0;
     transition: opacity 2s ease-in 3s;
-    animation: pulse 4s infinite 8s;
+    animation: pulse 4s infinite 4s;
+    cursor:default;
 }
 @keyframes pulse {
 	0% {
@@ -93,7 +94,7 @@ footer {
     transition: opacity 250ms ease-in;
 }
 
-#shown-content-container.htmx-swapping {
+#shown-content-container.htmx-swapping:not(#portrait) {
     opacity: 0;
     transition: opacity 250ms ease-out;
 }
