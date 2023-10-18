@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"text/template"
-	"time"
 )
 
 type Works struct {
@@ -14,64 +12,56 @@ type Works struct {
 }
 
 func main() {
-	fmt.Println("hello world")
-
-	h1 := func(w http.ResponseWriter, r *http.Request) {
-		tmpl := template.Must(template.ParseFiles("templates/index.html"))
-		works := map[string][]Works{
-			"Works": {
-				{Title: "Proj A", Description: "The proy A is cool"},
-				{Title: "Proj B", Description: "B is for bad...."},
-			},
-		}
-		tmpl.Execute(w, works)
-	}
-
-	h2 := func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(1 * time.Second)
-		log.Print("HTMX Hit")
-		title := r.PostFormValue("Title")
-		fmt.Println(title)
-		tmpl := template.Must(template.ParseFiles("templates/index.html"))
-		tmpl.ExecuteTemplate(w, "test-list-element", Works{Title: title, Description: "manually added"})
-		// htmlStr := fmt.Sprintf("<p>%s - manually added</p>", title)
-		// tmpl, _ := template.New("t").Parse(htmlStr)
-		// tmpl.Execute(w, nil)
-	}
-
-	h3 := func(w http.ResponseWriter, r *http.Request) {
-		tmpl := template.Must(template.ParseFiles("templates/language_selection.html"))
-		tmpl.Execute(w, nil)
-	}
-
-	h4 := func(w http.ResponseWriter, r *http.Request) {
-		tmpl := template.Must(template.ParseFiles("templates/welcome_es.html"))
-		tmpl.Execute(w, nil)
-	}
 
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	http.HandleFunc("/", PlainIndex)
-	http.HandleFunc("/home", PlainHome)
-	http.HandleFunc("/language", PlainLanguage)
-	http.HandleFunc("/pop", h1)
-	http.HandleFunc("/hit/", h2)
-	http.HandleFunc("/initial", h3)
-	http.HandleFunc("/lang/es", h4)
+	http.HandleFunc("/", WelcomePage)
+	http.HandleFunc("/home", HomePage)
+	http.HandleFunc("/language", LanguagePage)
+	http.HandleFunc("/legal", LegalPage)
+	http.HandleFunc("/about", AboutPage)
+	http.HandleFunc("/work", WorkPage)
+	http.HandleFunc("/contact", ContactPage)
 
 	log.Fatal(http.ListenAndServe("127.0.0.1:8000", nil))
 }
 
-func PlainIndex(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("templates/plain_htmls/index.html"))
+func WelcomePage(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles("templates/main.html")
+	if err != nil {
+		print(err)
+	}
+	err = tmpl.Execute(w, nil)
+	if err != nil {
+		print(err)
+	}
+}
+
+func HomePage(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("templates/home.html"))
 	tmpl.Execute(w, nil)
 }
 
-func PlainHome(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("templates/plain_htmls/home.html"))
+func LanguagePage(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("templates/plain_htmls/language.html"))
 	tmpl.Execute(w, nil)
 }
 
-func PlainLanguage(w http.ResponseWriter, r *http.Request) {
+func LegalPage(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("templates/plain_htmls/language.html"))
+	tmpl.Execute(w, nil)
+}
+
+func AboutPage(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("templates/plain_htmls/language.html"))
+	tmpl.Execute(w, nil)
+}
+
+func WorkPage(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("templates/plain_htmls/language.html"))
+	tmpl.Execute(w, nil)
+}
+
+func ContactPage(w http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFiles("templates/plain_htmls/language.html"))
 	tmpl.Execute(w, nil)
 }

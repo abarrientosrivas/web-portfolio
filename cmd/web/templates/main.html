@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{Fullname}</title>
+        <link rel="stylesheet" type="text/css" href="/static/styles.css">
+        <script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
+        <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    </head>
+
+    <body>
+
+        <header>
+            <nav id="main-navbar">
+                <ul>
+                    <li><a href="/home"><img src="/static/favicon.ico" alt="home" width="24"></a></li>
+                    <li><a href="/about">about</a></li>
+                    <li><a href="/work">work</a></li>
+                    <li><a href="/contact">contact</a></li>
+                </ul>
+                <ul>
+                    <li><a href="/language">lang</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <div id="main-content">
+                {{ template "content" }}
+            </div>
+        </main>
+
+        <footer>
+            &copy; 2023 by {Fullname}. <a href="/legal/#license">MIT License</a> | <a href="/legal/#privacy-policy">Privacy Policy</a>.
+        </footer>
+
+    </body>
+
+</html>
