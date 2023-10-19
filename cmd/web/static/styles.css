@@ -1,23 +1,12 @@
 /* General style */
 html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
     font-family: Consolas, monospace;
-    background-color: #af8f8f;
 }
 
-/* body {
-    background-image: url('path_to_your_image.jpg');
-    background-size: cover;
-    background-position: center; 
-    background-repeat: no-repeat;
-} */
-
-.navbar {
+.fade-in {
     opacity: 0;
-    transition: opacity 2s ease; /* Transition effect */
-    animation: fadeIn 2s forwards 1s; /* Apply fade-in animation with 1 second delay */
+    transition: opacity 2s ease;
+    animation: fadeIn 2s forwards;
 }
 
 /* Keyframes for fade-in effect */
@@ -27,72 +16,21 @@ html, body {
     }
 }
 
-/* Navbar style */
-ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    align-items: center;
-}
-
 header {
-    background-color: #333;
-    color: #fff;
-    padding: 10px 0;
     opacity: 1;
     transition: opacity 1s ease;
 }
 
-header.hidden {
-    opacity: 0;
-}
-
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 15%;
-}
-
-nav a {
-    text-decoration: none;
-    padding: 10px;
-    color: #fff;
-    font-weight: bold;
-}
-
-nav a:hover {
-    text-decoration: underline;
-}
-
 /* Footer style */
 footer {
-    color: #333;
-    padding: 5px 20px;
     position: fixed;
     bottom: 0;
-    left: 15%;
-}
-
-.hoverable{
-    cursor: pointer;
-}
-
-.display-text{
-    cursor:default;
-}
-
-.language,.presentation{
-    margin-top: 5em;
-    text-align: center; 
 }
 
 #message {
     opacity: 0;
     transition: opacity 2s ease-in 3s;
     animation: pulse 4s infinite 4s;
-    cursor:default;
 }
 @keyframes pulse {
 	0% {
@@ -106,14 +44,4 @@ footer {
 	100% {
 		transform: scale(1);
 	}
-}
-
-#shown-content-container {
-    opacity: 1;
-    transition: opacity 250ms ease-in;
-}
-
-#shown-content-container.htmx-swapping:not(#portrait) {
-    opacity: 0;
-    transition: opacity 250ms ease-out;
 }

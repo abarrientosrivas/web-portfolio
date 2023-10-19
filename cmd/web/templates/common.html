@@ -1,6 +1,6 @@
-{{ define "common" }}<!DOCTYPE html>
+{{ define "common" }}
+<!DOCTYPE html>
 <html lang="en">
-
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,30 +9,27 @@
         <script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
         <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
     </head>
-
     <body>
-        <div class="content">
-            <header {{if .HideHeader }} style="opacity: 0;" {{ else }} class="navbar" {{end}} >
-                <nav>
-                    <a href="/home">home</a>
-                    <a href="/about">about</a>
-                    <a href="/work">work</a>
-                    <a href="/contact">contact</a>
-                    <a href="/language">lang</a>
-                </nav>
-            </header>
+        <header {{if .ShowHeader }} class="fade-in" {{end}} {{if .HideHeader }} style="opacity: 0; pointer-events: none;" {{end}}>
+            <nav style="text-align: center;">
+                <a href="/">home</a>
+                <a href="/about">about</a>
+                <a href="/work">work</a>
+                <a href="/contact">contact</a>
+                <a href="/language">lang</a>
+            </nav>
+            <hr>
+        </header>
 
-            <main>
-                <div>
-                    {{ template "content" . }}
-                </div>
-            </main>
+        <main>
+            <div id="main-container">
+                {{ template "content" . }}
+            </div>
+        </main>
 
-            <footer>
-                &copy; 2023 by {Fullname}. <a href="/legal/#license">MIT License</a> | <a href="/legal/#privacy-policy">Privacy Policy</a>.
-            </footer>
-        </div>
+        <footer>
+            &copy; 2023 by {Fullname}. <a href="/legal#license">License</a> | <a href="/legal#privacy-policy">Privacy Policy</a>.
+        </footer>
     </body>
-
 </html>
 {{ end }}

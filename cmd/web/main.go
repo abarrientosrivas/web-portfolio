@@ -8,8 +8,8 @@ import (
 
 func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	http.HandleFunc("/", WelcomeHandler)
-	http.HandleFunc("/home", HomeHandler)
+	http.HandleFunc("/", LandingHandler)
+	http.HandleFunc("/welcome", WelcomeHandler)
 	http.HandleFunc("/language", LanguageHandler)
 	http.HandleFunc("/legal", LegalHandler)
 	http.HandleFunc("/about", AboutHandler)
@@ -20,8 +20,9 @@ func main() {
 	log.Fatal(http.ListenAndServe("127.0.0.1:8000", nil))
 }
 
-func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
+func LandingHandler(w http.ResponseWriter, r *http.Request) {
 	data := struct {
+		ShowHeader bool
 		HideHeader bool
 	}{
 		HideHeader: true,
@@ -30,9 +31,15 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "common", data)
 }
 
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
+func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
+	data := struct {
+		ShowHeader bool
+		HideHeader bool
+	}{
+		ShowHeader: true,
+	}
 	tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/presentation.html"))
-	tmpl.ExecuteTemplate(w, "common", nil)
+	tmpl.ExecuteTemplate(w, "common", data)
 }
 
 func LanguageHandler(w http.ResponseWriter, r *http.Request) {
@@ -56,6 +63,6 @@ func WorkPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func ContactHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("templates/plain_htmls/contact.html"))
-	tmpl.Execute(w, nil)
+	tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/contact_info.html"))
+	tmpl.ExecuteTemplate(w, "common", nil)
 }
