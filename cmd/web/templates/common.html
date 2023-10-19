@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{{ define "common" }}<!DOCTYPE html>
 <html lang="en">
 
     <head>
@@ -28,7 +28,7 @@
 
         <main>
             <div id="main-content">
-                {{ template "content" }}
+                {{ template "content" .}}
             </div>
         </main>
 
@@ -39,3 +39,4 @@
     </body>
 
 </html>
+{{ end }}
