@@ -42,3 +42,24 @@
     </body>
 
 </html>
+
+<script>
+    (() => {
+        const elements = document.querySelectorAll(".hoverable");
+
+        elements.forEach(function(element) {
+            element.addEventListener("mouseover", onMouseEnter);
+            element.addEventListener("mouseout", onMouseLeave);
+        });
+        
+        function onMouseEnter(event) {
+            const element = event.target;
+            element.textContent = `>${element.textContent}<`;
+        }
+        
+        function onMouseLeave(event) {
+            const element = event.target;
+            element.textContent = element.textContent.replace(/<|>/g, "");
+        }
+    })();
+</script>

@@ -26,15 +26,18 @@ func main() {
 }
 
 func WelcomePage(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/welcome.html"))
-	tmpl.ExecuteTemplate(w, "common", nil)
+	data := struct {
+		HideHeader bool
+	}{
+		HideHeader: true,
+	}
+	tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/landing.html"))
+	tmpl.ExecuteTemplate(w, "common", data)
 }
 
 func HomePage(w http.ResponseWriter, r *http.Request) {
-	tmpl := make(map[string]*template.Template)
-	tmpl["index.html"] = template.Must(template.ParseFiles("index.html", "base.html"))
-	tmpl["other.html"] = template.Must(template.ParseFiles("other.html", "base.html"))
-	tmpl["other.html"].ExecuteTemplate(w, "base", nil)
+	tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/welcome.html"))
+	tmpl.ExecuteTemplate(w, "common", nil)
 }
 
 func LanguagePage(w http.ResponseWriter, r *http.Request) {

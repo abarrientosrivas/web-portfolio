@@ -14,6 +14,19 @@ html, body {
     background-repeat: no-repeat;
 } */
 
+.navbar {
+    opacity: 0;
+    transition: opacity 2s ease; /* Transition effect */
+    animation: fadeIn 2s forwards 1s; /* Apply fade-in animation with 1 second delay */
+}
+
+/* Keyframes for fade-in effect */
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
 /* Navbar style */
 ul {
     list-style: none;
@@ -27,6 +40,12 @@ header {
     background-color: #333;
     color: #fff;
     padding: 10px 0;
+    opacity: 1;
+    transition: opacity 1s ease;
+}
+
+header.hidden {
+    opacity: 0;
 }
 
 nav {

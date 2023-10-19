@@ -1,28 +1,9 @@
-<div class="language">
+{{ define "content" }}
+<div style="text-align: center; padding-top: 4em;">
     <img id="portrait" src="/static/portrait.jpg">
-    <br/>
-    <h2 class="display-text">- CHOOSE YOUR LANGUAGE -</h2>
-    <p class="hoverable" hx-get="/lang/es" hx-target="#shown-content-container" hx-trigger="click">ESPAÑOL</p>
-    <p class="hoverable" hx-get="/lang/es" hx-target="#shown-content-container" hx-trigger="click">ENGLISH</p>
-    <p class="hoverable" hx-get="/lang/es" hx-target="#shown-content-container" hx-trigger="click">日本語</p>
+    <h2>- CHOOSE YOUR LANGUAGE -</h2>
+    <a href="/home/es">ESPAÑOL</a>
+    <a href="/home/es">ENGLISH</a>
+    <a href="/home/es">日本語</a>
 </div>
-<script>
-    (() => {
-        const elements = document.querySelectorAll(".hoverable");
-
-        elements.forEach(function(element) {
-            element.addEventListener("mouseover", onMouseEnter);
-            element.addEventListener("mouseout", onMouseLeave);
-        });
-        
-        function onMouseEnter(event) {
-            const element = event.target;
-            element.textContent = `>${element.textContent}<`;
-        }
-        
-        function onMouseLeave(event) {
-            const element = event.target;
-            element.textContent = element.textContent.replace(/<|>/g, "");
-        }
-    })();
-</script>
+{{ end }}
