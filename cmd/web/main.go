@@ -1,10 +1,20 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"text/template"
+
+	"github.com/BurntSushi/toml"
 )
+
+type PresentationConfig struct {
+	WelcomeText      string `toml:"WelcomeText"`
+	PresentationText string `toml:"PresentationText"`
+	MessageText      string `toml:"MessageText"`
+}
 
 func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
@@ -32,12 +42,41 @@ func LandingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
-	data := struct {
-		ShowHeader bool
-		HideHeader bool
-	}{
-		ShowHeader: true,
+	filePath := "data/en/presentation.toml"
+
+	// Check if the file exists.
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		fmt.Println("File does not exist:", filePath)
+		return
 	}
+
+	tomlData, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return
+	}
+
+	var config PresentationConfig
+
+	// Parse the TOML data into the Config struct.
+	if _, err := toml.Decode(string(tomlData), &config); err != nil {
+		fmt.Println("Error decoding TOML:", err)
+		return
+	}
+
+	data := struct {
+		ShowHeader       bool
+		HideHeader       bool
+		WelcomeText      string
+		PresentationText string
+		MessageText      string
+	}{
+		ShowHeader:       true,
+		WelcomeText:      config.WelcomeText,
+		PresentationText: config.PresentationText,
+		MessageText:      config.MessageText,
+	}
+
 	tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/presentation.html"))
 	tmpl.ExecuteTemplate(w, "common", data)
 }
