@@ -14,8 +14,9 @@ import (
 )
 
 type CommonConfig struct {
-	ShowHeader bool
-	HideHeader bool
+	JustArrived  bool
+	RevealHeader bool
+	HideHeader   bool
 }
 
 type CommonStrings struct {
@@ -27,6 +28,11 @@ type CommonStrings struct {
 	CopyrightText     string `toml:"CopyrightText"`
 	LicenseText       string `toml:"LicenseText"`
 	PrivacyPolicyText string `toml:"PrivacyPolicyText"`
+}
+
+type LandingStrings struct {
+	WelcomeText string `toml:"WelcomeText"`
+	MessageText string `toml:"MessageText"`
 }
 
 type PresentationStrings struct {
@@ -63,8 +69,9 @@ func main() {
 	log.Fatal(http.ListenAndServe("127.0.0.1:8000", sessionManager.LoadAndSave(mux)))
 }
 
-func LandingHandler(w http.ResponseWriter, r *http.Request) {
+func GetCurrentLanguage(r *http.Request) string {
 	var language string
+
 	if sessionManager.GetString(r.Context(), "language") == "" {
 		preferredLanguage := r.Header.Get("Accept-Language")
 		if preferredLanguage == "" {
@@ -77,65 +84,58 @@ func LandingHandler(w http.ResponseWriter, r *http.Request) {
 		language = sessionManager.GetString(r.Context(), "language")
 	}
 
-	commonFilePath := fmt.Sprintf("data/%s/common.toml", language)
-	presentationFilePath := fmt.Sprintf("data/%s/presentation.toml", language)
+	return language
+}
 
-	if _, err := os.Stat(commonFilePath); os.IsNotExist(err) {
-		log.Println("File does not exist:", commonFilePath)
-		log.Println("Trying default.")
-		commonFilePath = "data/en/common.toml"
-		if _, err := os.Stat(commonFilePath); os.IsNotExist(err) {
-			log.Println("File does not exist:", commonFilePath)
-			return
+func GetLanguageStrings[T any](language string, configName string) (T, error) {
+	var readConfig T
+	tomlFilepath := fmt.Sprintf("data/%s/%s.toml", language, configName)
+
+	if _, err := os.Stat(tomlFilepath); os.IsNotExist(err) {
+		log.Print("File does not exist:", tomlFilepath)
+		log.Print("Trying default.")
+		tomlFilepath = fmt.Sprintf("data/en/%s.toml", configName)
+		if _, err := os.Stat(tomlFilepath); os.IsNotExist(err) {
+			log.Print("File does not exist:", tomlFilepath)
+			return readConfig, err
 		}
 	}
 
-	if _, err := os.Stat(presentationFilePath); os.IsNotExist(err) {
-		log.Println("File does not exist:", presentationFilePath)
-		log.Println("Trying default.")
-		presentationFilePath = "data/en/presentation.toml"
-		if _, err := os.Stat(presentationFilePath); os.IsNotExist(err) {
-			log.Println("File does not exist:", presentationFilePath)
-			return
-		}
-	}
-
-	tomlData, err := os.ReadFile(commonFilePath)
+	tomlData, err := os.ReadFile(tomlFilepath)
 	if err != nil {
-		fmt.Println("Error reading file:", err)
-		return
+		fmt.Print("Error reading file:", err)
+		return readConfig, err
 	}
-
-	var commonStrings CommonStrings
 
 	// Parse the TOML data into the Config struct.
-	if _, err := toml.Decode(string(tomlData), &commonStrings); err != nil {
-		fmt.Println("Error decoding TOML:", err)
-		return
+	if _, err := toml.Decode(string(tomlData), &readConfig); err != nil {
+		fmt.Print("Error decoding TOML:", err)
+		return readConfig, err
 	}
 
-	tomlData, err = os.ReadFile(presentationFilePath)
+	return readConfig, nil
+}
+
+func LandingHandler(w http.ResponseWriter, r *http.Request) {
+	language := GetCurrentLanguage(r)
+	commonStrings, err := GetLanguageStrings[CommonStrings](language, "common")
 	if err != nil {
-		fmt.Println("Error reading file:", err)
+		log.Print("Error loading strings", err)
 		return
 	}
-
-	var presentationStrings PresentationStrings
-
-	// Parse the TOML data into the Config struct.
-	if _, err := toml.Decode(string(tomlData), &presentationStrings); err != nil {
-		fmt.Println("Error decoding TOML:", err)
+	landingStrings, err := GetLanguageStrings[LandingStrings](language, "landing")
+	if err != nil {
+		log.Print("Error loading strings", err)
 		return
 	}
-
 	commonConfig := CommonConfig{
 		HideHeader: true,
 	}
 
 	context := map[string]interface{}{
-		"CommonConfig":        commonConfig,
-		"CommonStrings":       commonStrings,
-		"PresentationStrings": presentationStrings,
+		"CommonConfig":   commonConfig,
+		"CommonStrings":  commonStrings,
+		"LandingStrings": landingStrings,
 	}
 
 	tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/landing.html"))
@@ -143,65 +143,19 @@ func LandingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
-	preferredLanguage := r.Header.Get("Accept-Language")
-	if preferredLanguage == "" {
-		preferredLanguage = "en"
-	}
-	preferredLanguage = preferredLanguage[:2]
-
-	commonFilePath := fmt.Sprintf("data/%s/common.toml", preferredLanguage)
-	presentationFilePath := fmt.Sprintf("data/%s/presentation.toml", preferredLanguage)
-
-	if _, err := os.Stat(commonFilePath); os.IsNotExist(err) {
-		log.Println("File does not exist:", commonFilePath)
-		log.Println("Trying default.")
-		commonFilePath = "data/en/common.toml"
-		if _, err := os.Stat(commonFilePath); os.IsNotExist(err) {
-			log.Println("File does not exist:", commonFilePath)
-			return
-		}
-	}
-
-	if _, err := os.Stat(presentationFilePath); os.IsNotExist(err) {
-		log.Println("File does not exist:", presentationFilePath)
-		log.Println("Trying default.")
-		presentationFilePath = "data/en/presentation.toml"
-		if _, err := os.Stat(presentationFilePath); os.IsNotExist(err) {
-			log.Println("File does not exist:", presentationFilePath)
-			return
-		}
-	}
-
-	tomlData, err := os.ReadFile(commonFilePath)
+	language := GetCurrentLanguage(r)
+	commonStrings, err := GetLanguageStrings[CommonStrings](language, "common")
 	if err != nil {
-		fmt.Println("Error reading file:", err)
+		log.Print("Error loading strings", err)
 		return
 	}
-
-	var commonStrings CommonStrings
-
-	// Parse the TOML data into the Config struct.
-	if _, err := toml.Decode(string(tomlData), &commonStrings); err != nil {
-		fmt.Println("Error decoding TOML:", err)
-		return
-	}
-
-	tomlData, err = os.ReadFile(presentationFilePath)
+	presentationStrings, err := GetLanguageStrings[PresentationStrings](language, "presentation")
 	if err != nil {
-		fmt.Println("Error reading file:", err)
+		log.Print("Error loading strings", err)
 		return
 	}
-
-	var presentationStrings PresentationStrings
-
-	// Parse the TOML data into the Config struct.
-	if _, err := toml.Decode(string(tomlData), &presentationStrings); err != nil {
-		fmt.Println("Error decoding TOML:", err)
-		return
-	}
-
 	commonConfig := CommonConfig{
-		ShowHeader: true,
+		RevealHeader: true,
 	}
 
 	context := map[string]interface{}{
@@ -215,74 +169,22 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func LanguageHandler(w http.ResponseWriter, r *http.Request) {
-	var language string
-	if sessionManager.GetString(r.Context(), "language") == "" {
-		preferredLanguage := r.Header.Get("Accept-Language")
-		if preferredLanguage == "" {
-			preferredLanguage = "en"
-		}
-		preferredLanguage = preferredLanguage[:2]
-		sessionManager.Put(r.Context(), "language", preferredLanguage)
-		language = preferredLanguage
-	} else {
-		language = sessionManager.GetString(r.Context(), "language")
-	}
+	language := GetCurrentLanguage(r)
+	langParameter := r.URL.Query().Get("lang")
 
-	langParam := r.URL.Query().Get("lang")
-
-	if langParam != "" {
-		language = langParam
+	if langParameter != "" {
+		language = langParameter
 		sessionManager.Put(r.Context(), "language", language)
 	}
 
-	commonFilePath := fmt.Sprintf("data/%s/common.toml", language)
-	languageSelectorFilePath := fmt.Sprintf("data/%s/language_selector.toml", language)
-
-	if _, err := os.Stat(commonFilePath); os.IsNotExist(err) {
-		log.Println("File does not exist:", commonFilePath)
-		log.Println("Trying default.")
-		commonFilePath = "data/en/common.toml"
-		if _, err := os.Stat(commonFilePath); os.IsNotExist(err) {
-			log.Println("File does not exist:", commonFilePath)
-			return
-		}
-	}
-
-	if _, err := os.Stat(languageSelectorFilePath); os.IsNotExist(err) {
-		log.Println("File does not exist:", languageSelectorFilePath)
-		log.Println("Trying default.")
-		languageSelectorFilePath = "data/en/language_selector.toml"
-		if _, err := os.Stat(languageSelectorFilePath); os.IsNotExist(err) {
-			log.Println("File does not exist:", languageSelectorFilePath)
-			return
-		}
-	}
-
-	tomlData, err := os.ReadFile(commonFilePath)
+	commonStrings, err := GetLanguageStrings[CommonStrings](language, "common")
 	if err != nil {
-		fmt.Println("Error reading file:", err)
+		log.Print("Error loading strings", err)
 		return
 	}
-
-	var commonStrings CommonStrings
-
-	// Parse the TOML data into the Config struct.
-	if _, err := toml.Decode(string(tomlData), &commonStrings); err != nil {
-		fmt.Println("Error decoding TOML:", err)
-		return
-	}
-
-	tomlData, err = os.ReadFile(languageSelectorFilePath)
+	languageSelectorStrings, err := GetLanguageStrings[LanguageSelectorStrings](language, "language_selector")
 	if err != nil {
-		fmt.Println("Error reading file:", err)
-		return
-	}
-
-	var languageSelectorStrings LanguageSelectorStrings
-
-	// Parse the TOML data into the Config struct.
-	if _, err := toml.Decode(string(tomlData), &languageSelectorStrings); err != nil {
-		fmt.Println("Error decoding TOML:", err)
+		log.Print("Error loading strings", err)
 		return
 	}
 
