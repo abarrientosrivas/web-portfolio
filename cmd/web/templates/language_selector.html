@@ -1,9 +1,9 @@
 {{ define "content" }}
 <div style="text-align: center; padding-top: 4em;">
     <img id="portrait" src="/static/portrait.jpg">
-    <h2>- CHOOSE YOUR LANGUAGE -</h2>
-    <a href="/home/es">ESPAÑOL</a>
-    <a href="/home/es">ENGLISH</a>
-    <a href="/home/es">日本語</a>
+    <h2>-{{.LanguageSelectorStrings.LanguageSelectionText}}-</h2>
+    <a href="/language?lang=es">ESPAÑOL</a>
+    <a href="/language?lang=en">ENGLISH</a>
+    <a href="/language?lang=ja">日本語</a>
 </div>
 {{ end }}
