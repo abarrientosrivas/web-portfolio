@@ -10,7 +10,23 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-type PresentationConfig struct {
+type CommonConfig struct {
+	ShowHeader bool
+	HideHeader bool
+}
+
+type CommonStrings struct {
+	HomeText          string `toml:"HomeText"`
+	AboutText         string `toml:"AboutText"`
+	WorkText          string `toml:"WorkText"`
+	ContactText       string `toml:"ContactText"`
+	LanguageText      string `toml:"LanguageText"`
+	CopyrightText     string `toml:"CopyrightText"`
+	LicenseText       string `toml:"LicenseText"`
+	PrivacyPolicyText string `toml:"PrivacyPolicyText"`
+}
+
+type PresentationStrings struct {
 	WelcomeText      string `toml:"WelcomeText"`
 	PresentationText string `toml:"PresentationText"`
 	MessageText      string `toml:"MessageText"`
@@ -42,43 +58,71 @@ func LandingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
-	filePath := "data/en/presentation.toml"
+	preferredLanguage := r.Header.Get("Accept-Language")[:2]
 
-	// Check if the file exists.
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		fmt.Println("File does not exist:", filePath)
-		return
+	commonFilePath := fmt.Sprintf("data/%s/common.toml", preferredLanguage)
+	presentationFilePath := fmt.Sprintf("data/%s/presentation.toml", preferredLanguage)
+
+	if _, err := os.Stat(commonFilePath); os.IsNotExist(err) {
+		log.Println("File does not exist:", commonFilePath)
+		log.Println("Trying default.")
+		commonFilePath = "data/en/common.toml"
+		if _, err := os.Stat(commonFilePath); os.IsNotExist(err) {
+			log.Println("File does not exist:", commonFilePath)
+			return
+		}
 	}
 
-	tomlData, err := os.ReadFile(filePath)
+	if _, err := os.Stat(presentationFilePath); os.IsNotExist(err) {
+		log.Println("File does not exist:", presentationFilePath)
+		log.Println("Trying default.")
+		presentationFilePath = "data/en/presentation.toml"
+		if _, err := os.Stat(presentationFilePath); os.IsNotExist(err) {
+			log.Println("File does not exist:", presentationFilePath)
+			return
+		}
+	}
+
+	tomlData, err := os.ReadFile(commonFilePath)
 	if err != nil {
 		fmt.Println("Error reading file:", err)
 		return
 	}
 
-	var config PresentationConfig
+	var commonStrings CommonStrings
 
 	// Parse the TOML data into the Config struct.
-	if _, err := toml.Decode(string(tomlData), &config); err != nil {
+	if _, err := toml.Decode(string(tomlData), &commonStrings); err != nil {
 		fmt.Println("Error decoding TOML:", err)
 		return
 	}
 
-	data := struct {
-		ShowHeader       bool
-		HideHeader       bool
-		WelcomeText      string
-		PresentationText string
-		MessageText      string
-	}{
-		ShowHeader:       true,
-		WelcomeText:      config.WelcomeText,
-		PresentationText: config.PresentationText,
-		MessageText:      config.MessageText,
+	tomlData, err = os.ReadFile(presentationFilePath)
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return
+	}
+
+	var presentationStrings PresentationStrings
+
+	// Parse the TOML data into the Config struct.
+	if _, err := toml.Decode(string(tomlData), &presentationStrings); err != nil {
+		fmt.Println("Error decoding TOML:", err)
+		return
+	}
+
+	commonConfig := CommonConfig{
+		ShowHeader: true,
+	}
+
+	context := map[string]interface{}{
+		"CommonConfig":        commonConfig,
+		"CommonStrings":       commonStrings,
+		"PresentationStrings": presentationStrings,
 	}
 
 	tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/presentation.html"))
-	tmpl.ExecuteTemplate(w, "common", data)
+	tmpl.ExecuteTemplate(w, "common", context)
 }
 
 func LanguageHandler(w http.ResponseWriter, r *http.Request) {

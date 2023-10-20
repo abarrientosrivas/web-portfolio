@@ -1,0 +1,8 @@
+HomeText = "home"
+AboutText = "about"
+WorkText = "work"
+ContactText = "contact"
+LanguageText = "language"
+CopyrightText = "by {Fullname}."
+LicenseText = "License"
+PrivacyPolicyText = "Privacy Policy"

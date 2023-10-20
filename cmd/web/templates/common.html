@@ -10,13 +10,13 @@
         <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
     </head>
     <body>
-        <header {{if .ShowHeader }} class="fade-in" {{end}} {{if .HideHeader }} style="opacity: 0; pointer-events: none;" {{end}}>
+        <header {{if .CommonConfig.ShowHeader }} class="fade-in" {{end}} {{if .CommonConfig.HideHeader }} style="opacity: 0; pointer-events: none;" {{end}}>
             <nav style="text-align: center;">
-                <a href="/">home</a>
-                <a href="/about">about</a>
-                <a href="/work">work</a>
-                <a href="/contact">contact</a>
-                <a href="/language">lang</a>
+                <a href="/">{{ .CommonStrings.HomeText }}</a>
+                <a href="/about">{{ .CommonStrings.AboutText }}</a>
+                <a href="/work">{{ .CommonStrings.WorkText }}</a>
+                <a href="/contact">{{ .CommonStrings.ContactText }}</a>
+                <a href="/language">{{ .CommonStrings.LanguageText }}</a>
             </nav>
             <hr>
         </header>
@@ -28,7 +28,7 @@
         </main>
 
         <footer>
-            &copy; 2023 by {Fullname}. <a href="/legal#license">License</a> | <a href="/legal#privacy-policy">Privacy Policy</a>.
+            &copy; 2023 {{ .CommonStrings.CopyrightText }} <a href="/legal#license">{{ .CommonStrings.LicenseText }}</a> | <a href="/legal#privacy-policy">{{ .CommonStrings.PrivacyPolicyText }}</a>.
         </footer>
     </body>
 </html>

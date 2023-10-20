@@ -1,8 +1,8 @@
 {{ define "content" }}
 <div style="text-align: center; padding-top: 4em;">
     <img src="/static/portrait.jpg">
-    <h1>&lt;{{ .WelcomeText }}/&gt;</h1>
-    <h3>{{ .PresentationText }}</h2>
-    <p>-{{ .MessageText }}-</p>
+    <h1>&lt;{{ .PresentationStrings.WelcomeText }}/&gt;</h1>
+    <h3>{{ .PresentationStrings.PresentationText }}</h2>
+    <p>-{{ .PresentationStrings.MessageText }}-</p>
 </div>
 {{ end }}
