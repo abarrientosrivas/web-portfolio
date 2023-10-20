@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"text/template"
 	"time"
 
@@ -107,13 +109,27 @@ func GetLanguageStrings[T any](language string, configName string) (T, error) {
 		return readConfig, err
 	}
 
-	// Parse the TOML data into the Config struct.
 	if _, err := toml.Decode(string(tomlData), &readConfig); err != nil {
 		fmt.Print("Error decoding TOML:", err)
 		return readConfig, err
 	}
 
 	return readConfig, nil
+}
+
+func IsJustArriving(r *http.Request) bool {
+	secFetchSite := r.Header.Get("Sec-Fetch-Site")
+	if secFetchSite == "same-origin" || secFetchSite == "same-site" {
+		return false
+	}
+	referer := r.Header.Get("Referer")
+	if referer != "" {
+		refererURL, err := url.Parse(referer)
+		if err == nil && refererURL.Host == r.Host {
+			return false
+		}
+	}
+	return true
 }
 
 func LandingHandler(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +171,7 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	commonConfig := CommonConfig{
-		RevealHeader: true,
+		RevealHeader: !IsJustArriving(r) && strings.HasSuffix(r.Header.Get("Referer"), "/"),
 	}
 
 	context := map[string]interface{}{
