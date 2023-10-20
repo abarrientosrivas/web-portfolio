@@ -6,8 +6,11 @@ import (
 	"net/http"
 	"os"
 	"text/template"
+	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/alexedwards/scs/v2"
+	"github.com/alexedwards/scs/v2/memstore"
 )
 
 type CommonConfig struct {
@@ -36,29 +39,46 @@ type LanguageSelectorStrings struct {
 	LanguageSelectionText string `toml:"LanguageSelectionText"`
 }
 
+var sessionManager *scs.SessionManager
+
 func main() {
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	http.HandleFunc("/", LandingHandler)
-	http.HandleFunc("/welcome", WelcomeHandler)
-	http.HandleFunc("/language", LanguageHandler)
-	http.HandleFunc("/legal", LegalHandler)
-	http.HandleFunc("/about", AboutHandler)
-	http.HandleFunc("/work", WorkPage)
-	http.HandleFunc("/contact", ContactHandler)
+	sessionManager = scs.New()
+	sessionManager.Store = memstore.New()
+	sessionManager.Lifetime = 24 * time.Hour
+	sessionManager.Cookie.Persist = true
+	sessionManager.Cookie.SameSite = http.SameSiteLaxMode
+	sessionManager.Cookie.Secure = false
+
+	mux := http.NewServeMux()
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	mux.HandleFunc("/", LandingHandler)
+	mux.HandleFunc("/welcome", WelcomeHandler)
+	mux.HandleFunc("/language", LanguageHandler)
+	mux.HandleFunc("/legal", LegalHandler)
+	mux.HandleFunc("/about", AboutHandler)
+	mux.HandleFunc("/work", WorkPage)
+	mux.HandleFunc("/contact", ContactHandler)
 
 	log.Print("Server listening on: 127.0.0.1:8000")
-	log.Fatal(http.ListenAndServe("127.0.0.1:8000", nil))
+	log.Fatal(http.ListenAndServe("127.0.0.1:8000", sessionManager.LoadAndSave(mux)))
 }
 
 func LandingHandler(w http.ResponseWriter, r *http.Request) {
-	preferredLanguage := r.Header.Get("Accept-Language")
-	if preferredLanguage == "" {
-		preferredLanguage = "en"
+	var language string
+	if sessionManager.GetString(r.Context(), "language") == "" {
+		preferredLanguage := r.Header.Get("Accept-Language")
+		if preferredLanguage == "" {
+			preferredLanguage = "en"
+		}
+		preferredLanguage = preferredLanguage[:2]
+		sessionManager.Put(r.Context(), "language", preferredLanguage)
+		language = preferredLanguage
+	} else {
+		language = sessionManager.GetString(r.Context(), "language")
 	}
-	preferredLanguage = preferredLanguage[:2]
 
-	commonFilePath := fmt.Sprintf("data/%s/common.toml", preferredLanguage)
-	presentationFilePath := fmt.Sprintf("data/%s/presentation.toml", preferredLanguage)
+	commonFilePath := fmt.Sprintf("data/%s/common.toml", language)
+	presentationFilePath := fmt.Sprintf("data/%s/presentation.toml", language)
 
 	if _, err := os.Stat(commonFilePath); os.IsNotExist(err) {
 		log.Println("File does not exist:", commonFilePath)
@@ -195,21 +215,28 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func LanguageHandler(w http.ResponseWriter, r *http.Request) {
-	referer := r.Header.Get("Referer")
-	log.Print(referer)
-
-	preferredLanguage := r.URL.Query().Get("lang")
-
-	if preferredLanguage == "" {
-		preferredLanguage = r.Header.Get("Accept-Language")
+	var language string
+	if sessionManager.GetString(r.Context(), "language") == "" {
+		preferredLanguage := r.Header.Get("Accept-Language")
+		if preferredLanguage == "" {
+			preferredLanguage = "en"
+		}
+		preferredLanguage = preferredLanguage[:2]
+		sessionManager.Put(r.Context(), "language", preferredLanguage)
+		language = preferredLanguage
+	} else {
+		language = sessionManager.GetString(r.Context(), "language")
 	}
-	if preferredLanguage == "" {
-		preferredLanguage = "en"
-	}
-	preferredLanguage = preferredLanguage[:2]
 
-	commonFilePath := fmt.Sprintf("data/%s/common.toml", preferredLanguage)
-	languageSelectorFilePath := fmt.Sprintf("data/%s/language_selector.toml", preferredLanguage)
+	langParam := r.URL.Query().Get("lang")
+
+	if langParam != "" {
+		language = langParam
+		sessionManager.Put(r.Context(), "language", language)
+	}
+
+	commonFilePath := fmt.Sprintf("data/%s/common.toml", language)
+	languageSelectorFilePath := fmt.Sprintf("data/%s/language_selector.toml", language)
 
 	if _, err := os.Stat(commonFilePath); os.IsNotExist(err) {
 		log.Println("File does not exist:", commonFilePath)
