@@ -16,7 +16,6 @@ import (
 )
 
 type CommonConfig struct {
-	JustArrived  bool
 	RevealHeader bool
 	HideHeader   bool
 }
@@ -59,8 +58,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	mux.HandleFunc("/", LandingHandler)
-	mux.HandleFunc("/welcome", WelcomeHandler)
+	mux.HandleFunc("/", HomeHandler)
 	mux.HandleFunc("/language", LanguageHandler)
 	mux.HandleFunc("/legal", LegalHandler)
 	mux.HandleFunc("/about", AboutHandler)
@@ -68,7 +66,7 @@ func main() {
 	mux.HandleFunc("/contact", ContactHandler)
 
 	log.Print("Server listening on: 127.0.0.1:8000")
-	log.Fatal(http.ListenAndServe("127.0.0.1:8000", sessionManager.LoadAndSave(mux)))
+	log.Fatal(http.ListenAndServe(":8000", sessionManager.LoadAndSave(mux)))
 }
 
 func GetCurrentLanguage(r *http.Request) string {
@@ -117,71 +115,113 @@ func GetLanguageStrings[T any](language string, configName string) (T, error) {
 	return readConfig, nil
 }
 
-func IsJustArriving(r *http.Request) bool {
-	secFetchSite := r.Header.Get("Sec-Fetch-Site")
-	if secFetchSite == "same-origin" || secFetchSite == "same-site" {
-		return false
-	}
-	referer := r.Header.Get("Referer")
-	if referer != "" {
-		refererURL, err := url.Parse(referer)
-		if err == nil && refererURL.Host == r.Host {
+func areHeadersAbsent(r *http.Request, headers []string) bool {
+	for _, header := range headers {
+		if _, ok := r.Header[http.CanonicalHeaderKey(header)]; ok {
 			return false
 		}
 	}
+	log.Print("no header")
 	return true
 }
 
-func LandingHandler(w http.ResponseWriter, r *http.Request) {
-	language := GetCurrentLanguage(r)
-	commonStrings, err := GetLanguageStrings[CommonStrings](language, "common")
-	if err != nil {
-		log.Print("Error loading strings", err)
-		return
-	}
-	landingStrings, err := GetLanguageStrings[LandingStrings](language, "landing")
-	if err != nil {
-		log.Print("Error loading strings", err)
-		return
-	}
-	commonConfig := CommonConfig{
-		HideHeader: true,
-	}
+func IsJustArriving(r *http.Request) bool {
+	if areHeadersAbsent(r, []string{"Sec-Fetch-Site", "Origin", "Referer"}) {
+		return true
+	} else {
 
-	context := map[string]interface{}{
-		"CommonConfig":   commonConfig,
-		"CommonStrings":  commonStrings,
-		"LandingStrings": landingStrings,
-	}
+		secFetchSite := r.Header.Get("Sec-Fetch-Site")
+		if secFetchSite == "same-origin" || secFetchSite == "same-site" {
+			return false
+		}
 
-	tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/landing.html"))
-	tmpl.ExecuteTemplate(w, "common", context)
+		if secFetchSite == "none" || secFetchSite == "cross-site" {
+			return true
+		}
+
+		origin := r.Header.Get("Origin")
+		if origin != "" {
+			parsedOrigin, err := url.Parse(origin)
+			if err == nil && parsedOrigin.Host != r.Host {
+				return true
+			} else {
+				return false
+			}
+		}
+
+		referer := r.Header.Get("Referer")
+		if referer != "" {
+			refererURL, err := url.Parse(referer)
+			if err == nil && refererURL.Host != r.Host {
+				return true
+			} else {
+				return false
+			}
+		}
+		return true
+	}
 }
 
-func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	language := GetCurrentLanguage(r)
+	if values, ok := r.Header[http.CanonicalHeaderKey("Referer")]; ok {
+		// The header exists.
+		log.Printf("%s header exists with value(s): %v\n", "Referer", values)
+	} else {
+		// The header does not exist.
+		log.Printf("%s header does not exist\n", "Referer")
+	}
+
+	if values, ok := r.Header[http.CanonicalHeaderKey("Sec-Fetch-Site")]; ok {
+		// The header exists.
+		log.Printf("%s header exists with value(s): %v\n", "Sec-Fetch-Site", values)
+	} else {
+		// The header does not exist.
+		log.Printf("%s header does not exist\n", "Sec-Fetch-Site")
+	}
+
 	commonStrings, err := GetLanguageStrings[CommonStrings](language, "common")
 	if err != nil {
 		log.Print("Error loading strings", err)
 		return
 	}
-	presentationStrings, err := GetLanguageStrings[PresentationStrings](language, "presentation")
-	if err != nil {
-		log.Print("Error loading strings", err)
-		return
-	}
-	commonConfig := CommonConfig{
-		RevealHeader: !IsJustArriving(r) && strings.HasSuffix(r.Header.Get("Referer"), "/"),
-	}
 
-	context := map[string]interface{}{
-		"CommonConfig":        commonConfig,
-		"CommonStrings":       commonStrings,
-		"PresentationStrings": presentationStrings,
-	}
+	if IsJustArriving(r) {
+		landingStrings, err := GetLanguageStrings[LandingStrings](language, "landing")
+		if err != nil {
+			log.Print("Error loading strings", err)
+			return
+		}
+		commonConfig := CommonConfig{
+			HideHeader: false,
+		}
+		context := map[string]interface{}{
+			"CommonConfig":   commonConfig,
+			"CommonStrings":  commonStrings,
+			"LandingStrings": landingStrings,
+		}
 
-	tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/presentation.html"))
-	tmpl.ExecuteTemplate(w, "common", context)
+		tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/presentation.html"))
+		tmpl.ExecuteTemplate(w, "common", context)
+	} else {
+		presentationStrings, err := GetLanguageStrings[PresentationStrings](language, "presentation")
+		if err != nil {
+			log.Print("Error loading strings", err)
+			return
+		}
+		commonConfig := CommonConfig{
+			RevealHeader: strings.HasSuffix(r.Header.Get("Referer"), r.URL.String()),
+		}
+
+		context := map[string]interface{}{
+			"CommonConfig":        commonConfig,
+			"CommonStrings":       commonStrings,
+			"PresentationStrings": presentationStrings,
+		}
+
+		tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/presentation.html"))
+		tmpl.ExecuteTemplate(w, "common", context)
+	}
 }
 
 func LanguageHandler(w http.ResponseWriter, r *http.Request) {
