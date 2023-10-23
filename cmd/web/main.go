@@ -66,7 +66,7 @@ func main() {
 	mux.HandleFunc("/contact", ContactHandler)
 
 	log.Print("Server listening on: 127.0.0.1:8000")
-	log.Fatal(http.ListenAndServe(":8000", sessionManager.LoadAndSave(mux)))
+	log.Fatal(http.ListenAndServe("127.0.0.1:8000", sessionManager.LoadAndSave(mux)))
 }
 
 func GetCurrentLanguage(r *http.Request) string {
@@ -121,7 +121,6 @@ func areHeadersAbsent(r *http.Request, headers []string) bool {
 			return false
 		}
 	}
-	log.Print("no header")
 	return true
 }
 
@@ -164,21 +163,6 @@ func IsJustArriving(r *http.Request) bool {
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	language := GetCurrentLanguage(r)
-	if values, ok := r.Header[http.CanonicalHeaderKey("Referer")]; ok {
-		// The header exists.
-		log.Printf("%s header exists with value(s): %v\n", "Referer", values)
-	} else {
-		// The header does not exist.
-		log.Printf("%s header does not exist\n", "Referer")
-	}
-
-	if values, ok := r.Header[http.CanonicalHeaderKey("Sec-Fetch-Site")]; ok {
-		// The header exists.
-		log.Printf("%s header exists with value(s): %v\n", "Sec-Fetch-Site", values)
-	} else {
-		// The header does not exist.
-		log.Printf("%s header does not exist\n", "Sec-Fetch-Site")
-	}
 
 	commonStrings, err := GetLanguageStrings[CommonStrings](language, "common")
 	if err != nil {
@@ -201,7 +185,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 			"LandingStrings": landingStrings,
 		}
 
-		tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/presentation.html"))
+		tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/landing.html"))
 		tmpl.ExecuteTemplate(w, "common", context)
 	} else {
 		presentationStrings, err := GetLanguageStrings[PresentationStrings](language, "presentation")
@@ -226,8 +210,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 func LanguageHandler(w http.ResponseWriter, r *http.Request) {
 	language := GetCurrentLanguage(r)
-	langParameter := r.URL.Query().Get("lang")
 
+	langParameter := r.URL.Query().Get("lang")
 	if langParameter != "" {
 		language = langParameter
 		sessionManager.Put(r.Context(), "language", language)
@@ -255,8 +239,27 @@ func LanguageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func LegalHandler(w http.ResponseWriter, r *http.Request) {
+	language := GetCurrentLanguage(r)
+
+	commonStrings, err := GetLanguageStrings[CommonStrings](language, "common")
+	if err != nil {
+		log.Print("Error loading strings", err)
+		return
+	}
+	LegalStrings, err := GetLanguageStrings[LanguageSelectorStrings](language, "language_selector")
+	if err != nil {
+		log.Print("Error loading strings", err)
+		return
+	}
+
+	context := map[string]interface{}{
+		"CommonConfig":  CommonConfig{},
+		"CommonStrings": commonStrings,
+		"LegalStrings":  LegalStrings,
+	}
+
 	tmpl := template.Must(template.ParseFiles("templates/common.html", "templates/legal_page.html"))
-	tmpl.ExecuteTemplate(w, "common", nil)
+	tmpl.ExecuteTemplate(w, "common", context)
 }
 
 func AboutHandler(w http.ResponseWriter, r *http.Request) {
